@@ -159,6 +159,7 @@ ok
 --- config
     location = /t {
         content_by_lua_block {
+            local cjson = require("cjson")
             local simdjson = require("resty.simdjson")
 
             local parser = simdjson.new()
@@ -166,18 +167,27 @@ ok
 
             local v = parser:decode("[1, 2, 3]")
             assert(type(v) == "table")
+            assert(getmetatable(v) == cjson.array_mt)
             assert(#v == 3)
             assert(v[1] == 1 and v[2] == 2 and v[3] == 3)
 
             local v = parser:decode("[true, 2, \"abc\"]")
             assert(type(v) == "table")
+            assert(getmetatable(v) == cjson.array_mt)
             assert(#v == 3)
             assert(v[1] == true and v[2] == 2 and v[3] == "abc")
 
             local v = parser:decode("[1, null, 3]")
             assert(type(v) == "table")
+            assert(getmetatable(v) == cjson.array_mt)
             assert(#v == 3)
             assert(v[1] == 1 and v[2] == ngx.null and v[3] == 3)
+
+            local v = parser:decode("[[1], []]")
+            assert(type(v) == "table")
+            assert(getmetatable(v) == cjson.array_mt)
+            assert(getmetatable(v[1]) == cjson.array_mt)
+            assert(getmetatable(v[2]) == cjson.array_mt)
 
             ngx.say("ok")
         }
@@ -198,6 +208,7 @@ ok
 --- config
     location = /t {
         content_by_lua_block {
+            local cjson = require("cjson")
             local simdjson = require("resty.simdjson")
 
             local parser = simdjson.new()
@@ -205,6 +216,7 @@ ok
 
             local v = parser:decode([[{"a":1, "b":true, "c":"string"}]])
             assert(type(v) == "table")
+            assert(getmetatable(v) ~= cjson.array_mt)
             assert(v.a == 1 and v.b == true and v.c == "string")
 
             local v = parser:decode([[{"a":1.0, "b":null, "c":false}]])
@@ -459,6 +471,3 @@ simdjson: error: STRING_ERROR: Problem while parsing a string
 [error]
 [warn]
 [crit]
-
-
-

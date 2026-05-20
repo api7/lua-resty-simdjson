@@ -5,6 +5,7 @@ local _MT = { __index = _M, }
 local ffi = require("ffi")
 local table_new = require("table.new")
 local C = require("resty.simdjson.cdefs")
+local cjson_array_mt = require("cjson").array_mt
 
 
 local type = type
@@ -110,7 +111,7 @@ function _M:_build_array(count)
 
     local err
     local n = 1
-    local tbl = table_new(count, 0)
+    local tbl = setmetatable(table_new(count, 0), cjson_array_mt)
     local ops = self.ops
     local yieldable = self.yieldable
 
