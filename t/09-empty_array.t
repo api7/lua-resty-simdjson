@@ -54,7 +54,47 @@ ok
 
 
 
-=== TEST 2: cjson empty_array userdata
+=== TEST 2: cjson encode decoded empty array
+--- http_config eval: $::HttpConfig
+--- config
+    location = /t {
+        content_by_lua_block {
+            local cjson = require("cjson")
+            local simdjson = require("resty.simdjson")
+
+            local parser = simdjson.new()
+            assert(parser)
+
+            local v = parser:decode("[]")
+            assert(type(v) == "table")
+            assert(getmetatable(v) == cjson.array_mt)
+            assert(cjson.encode(v) == "[]")
+
+            local v = parser:decode([[{"arr":[]}]])
+            assert(type(v) == "table")
+            assert(getmetatable(v.arr) == cjson.array_mt)
+            assert(cjson.encode(v) == [[{"arr":[]}]])
+
+            local v = parser:decode("{}")
+            assert(type(v) == "table")
+            assert(getmetatable(v) ~= cjson.array_mt)
+            assert(cjson.encode(v) == "{}")
+
+            ngx.say("ok")
+        }
+    }
+--- request
+GET /t
+--- response_body
+ok
+--- no_error_log
+[error]
+[warn]
+[crit]
+
+
+
+=== TEST 3: cjson empty_array userdata
 --- http_config eval: $::HttpConfig
 --- config
     location = /t {
@@ -83,7 +123,7 @@ ok
 
 
 
-=== TEST 3: cjson empty_array_mt
+=== TEST 4: cjson empty_array_mt
 --- http_config eval: $::HttpConfig
 --- config
     location = /t {
@@ -110,6 +150,3 @@ ok
 [error]
 [warn]
 [crit]
-
-
-
