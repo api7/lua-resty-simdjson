@@ -44,7 +44,7 @@ jobs:
     - name: Install packages
       run: |
         sudo apt update
-        sudo apt-get install -qq -y wget cpanminus net-tools libpcre3-dev build-essential valgrind luarocks
+        sudo apt-get install -qq -y wget cpanminus net-tools libpcre3-dev build-essential valgrind lua5.1 liblua5.1-0-dev luarocks
         if [ ! -e perl ]; then sudo cpanm --notest Test::Nginx > build.log 2>&1 || (cat build.log && exit 1); cp -r /usr/local/share/perl/ .; else sudo cp -r perl /usr/local/share; fi
 
     - name: Download OpenResty
@@ -75,7 +75,7 @@ jobs:
         import re
         from pathlib import Path
 
-        pattern = re.compile(r"^lua-resty-simdjson-(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?-(\d+)\.rockspec$")
+        pattern = re.compile(r"^api7-lua-resty-simdjson-(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?-(\d+)\.rockspec$")
         def prerelease_key(value):
             if value is None:
                 return ()
@@ -88,18 +88,18 @@ jobs:
             return tuple(key)
 
         matches = []
-        for path in Path("rockspec").glob("lua-resty-simdjson-*.rockspec"):
+        for path in Path("rockspec").glob("api7-lua-resty-simdjson-*.rockspec"):
             match = pattern.match(path.name)
             if match:
                 major, minor, patch, prerelease, revision = match.groups()
                 matches.append((int(major), int(minor), int(patch), prerelease is None, prerelease_key(prerelease), int(revision), str(path)))
         if not matches:
-            raise SystemExit("no lua-resty-simdjson rockspec found")
+            raise SystemExit("no api7-lua-resty-simdjson rockspec found")
         print(max(matches)[-1])
         PY
         )"
-        luarocks make "$ROCKSPEC" --tree /tmp/lua-resty-simdjson-rock
-        eval "$(luarocks path --tree /tmp/lua-resty-simdjson-rock)"
+        luarocks --lua-version=5.1 make "$ROCKSPEC" --tree /tmp/lua-resty-simdjson-rock
+        eval "$(luarocks --lua-version=5.1 path --tree /tmp/lua-resty-simdjson-rock)"
         resty -e 'local simdjson = require("resty.simdjson"); local parser = assert(simdjson.new()); local obj = parser:decode("{\"a\":42}"); assert(obj.a == 42); assert(parser:encode(obj) == "{\"a\":42}")'
 
     - name: Run Valgrind

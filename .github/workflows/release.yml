@@ -17,21 +17,22 @@ permissions:
 
 jobs:
   release:
+    if: "${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'feat: release ') }}"
     name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
 
       - name: Install Lua
-        uses: leafo/gh-actions-lua@v10
+        uses: leafo/gh-actions-lua@35bcb06abec04ec87df82e08caa84d545348536e
         with:
           luaVersion: "5.1.5"
 
       - name: Install LuaRocks
-        uses: leafo/gh-actions-luarocks@v4
+        uses: leafo/gh-actions-luarocks@e65774a6386cb4f24e293dca7fc4ff89165b64c5
         with:
           luarocksVersion: "3.11.1"
 
@@ -87,9 +88,9 @@ jobs:
           from pathlib import Path
 
           version = os.environ["VERSION_WITHOUT_V"]
-          pattern = re.compile(r"^lua-resty-simdjson-" + re.escape(version) + r"-(\d+)\.rockspec$")
+          pattern = re.compile(r"^api7-lua-resty-simdjson-" + re.escape(version) + r"-(\d+)\.rockspec$")
           matches = []
-          for path in Path("rockspec").glob("lua-resty-simdjson-" + version + "-*.rockspec"):
+          for path in Path("rockspec").glob("api7-lua-resty-simdjson-" + version + "-*.rockspec"):
               match = pattern.match(path.name)
               if match:
                   matches.append((int(match.group(1)), str(path)))
@@ -110,14 +111,6 @@ jobs:
               exit 1
           fi
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.release_env.outputs.version }}
-          name: ${{ steps.release_env.outputs.version }}
-          draft: false
-          prerelease: ${{ steps.release_env.outputs.is_prerelease }}
-
       - name: Upload to LuaRocks
         env:
           LUAROCKS_TOKEN: ${{ secrets.LUAROCKS_TOKEN }}
@@ -126,6 +119,15 @@ jobs:
         run: |
           mkdir -p "$HOME/.luarocks"
           chmod 700 "$HOME/.luarocks"
-          lua -e 'local token = os.getenv("LUAROCKS_TOKEN"); assert(token and token ~= "", "missing LUAROCKS_TOKEN"); local f = assert(io.open(os.getenv("HOME") .. "/.luarocks/upload_config.lua", "w")); f:write(("key = %q\n"):format(token)); f:write("server = \"https://luarocks.org\"\nversion = \"1.0\"\n"); f:close()'
+          touch "$HOME/.luarocks/upload_config.lua"
           chmod 600 "$HOME/.luarocks/upload_config.lua"
+          lua -e 'local token = os.getenv("LUAROCKS_TOKEN"); assert(token and token ~= "", "missing LUAROCKS_TOKEN"); local f = assert(io.open(os.getenv("HOME") .. "/.luarocks/upload_config.lua", "w")); assert(f:write(("key = %q\n"):format(token))); assert(f:write("server = \"https://luarocks.org\"\nversion = \"1.0\"\n")); assert(f:close())'
           luarocks upload "$ROCKSPEC_FILE"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          tag_name: ${{ steps.release_env.outputs.version }}
+          name: ${{ steps.release_env.outputs.version }}
+          draft: false
+          prerelease: ${{ steps.release_env.outputs.is_prerelease }}

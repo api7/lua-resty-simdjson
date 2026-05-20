@@ -1,4 +1,4 @@
-package = "lua-resty-simdjson"
+package = "api7-lua-resty-simdjson"
 version = "0.1.0-1"
 supported_platforms = { "linux", "macosx" }
 
@@ -20,6 +20,8 @@ description = {
 
 dependencies = {
     "lua == 5.1",
+    "lua-cjson",
+    "lua-resty-core",
 }
 
 build = {
