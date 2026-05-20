@@ -111,6 +111,14 @@ jobs:
               exit 1
           fi
 
+      - name: Create Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          tag_name: ${{ steps.release_env.outputs.version }}
+          name: ${{ steps.release_env.outputs.version }}
+          draft: false
+          prerelease: ${{ steps.release_env.outputs.is_prerelease }}
+
       - name: Upload to LuaRocks
         env:
           LUAROCKS_TOKEN: ${{ secrets.LUAROCKS_TOKEN }}
@@ -123,11 +131,3 @@ jobs:
           chmod 600 "$HOME/.luarocks/upload_config.lua"
           lua -e 'local token = os.getenv("LUAROCKS_TOKEN"); assert(token and token ~= "", "missing LUAROCKS_TOKEN"); local f = assert(io.open(os.getenv("HOME") .. "/.luarocks/upload_config.lua", "w")); assert(f:write(("key = %q\n"):format(token))); assert(f:write("server = \"https://luarocks.org\"\nversion = \"1.0\"\n")); assert(f:close())'
           luarocks upload "$ROCKSPEC_FILE"
-
-      - name: Create Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
-        with:
-          tag_name: ${{ steps.release_env.outputs.version }}
-          name: ${{ steps.release_env.outputs.version }}
-          draft: false
-          prerelease: ${{ steps.release_env.outputs.is_prerelease }}
