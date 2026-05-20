@@ -54,7 +54,7 @@ ok
 
 
 
-=== TEST 4: cjson encode decoded empty array
+=== TEST 2: cjson encode decoded empty array
 --- http_config eval: $::HttpConfig
 --- config
     location = /t {
@@ -94,7 +94,7 @@ ok
 
 
 
-=== TEST 2: cjson empty_array userdata
+=== TEST 3: cjson empty_array userdata
 --- http_config eval: $::HttpConfig
 --- config
     location = /t {
@@ -123,7 +123,7 @@ ok
 
 
 
-=== TEST 3: cjson empty_array_mt
+=== TEST 4: cjson empty_array_mt
 --- http_config eval: $::HttpConfig
 --- config
     location = /t {
@@ -150,4 +150,3 @@ ok
 [error]
 [warn]
 [crit]
-
