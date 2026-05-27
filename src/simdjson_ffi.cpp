@@ -41,6 +41,15 @@ static padded_string_view get_padded_string_view(
 }
 
 
+static void simdjson_ffi_reset_decoder_state(simdjson_ffi_state *state) {
+    state->ops_n = 0;
+
+    while (!state->frames.empty()) {
+        state->frames.pop();
+    }
+}
+
+
 // T may be ondemand::value or state->document
 template<typename T>
 static bool simdjson_process_value(simdjson_ffi_state &state, T&& value) {
@@ -163,9 +172,10 @@ int simdjson_ffi_parse(simdjson_ffi_state *state,
     SIMDJSON_DEVELOPMENT_ASSERT(json);
     SIMDJSON_DEVELOPMENT_ASSERT(errmsg);
 
+    simdjson_ffi_reset_decoder_state(state);
+
     state->document = state->parser.iterate(
                           get_padded_string_view(json, len, state->json));
-    state->ops_n = 0;
 
     // the return value is intentionally ignored
     // because JSON could be either a bare scalar or
@@ -178,6 +188,8 @@ int simdjson_ffi_parse(simdjson_ffi_state *state,
 
 } catch (simdjson_error &e) {
     *errmsg = e.what();
+
+    simdjson_ffi_reset_decoder_state(state);
 
     // clean up tmp string on error to save memory
     state->json = padded_string();
@@ -303,6 +315,8 @@ int simdjson_ffi_next(simdjson_ffi_state *state, const char **errmsg) try {
 
 } catch (simdjson_error &e) {
     *errmsg = e.what();
+
+    simdjson_ffi_reset_decoder_state(state);
 
     // clean up tmp string on error to save memory
     state->json = padded_string();
