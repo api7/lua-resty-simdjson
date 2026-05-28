@@ -1,10 +1,10 @@
 package = "api7-lua-resty-simdjson"
-version = "0.1.1-1"
+version = "0.1.2-1"
 supported_platforms = { "linux", "macosx" }
 
 source = {
     url = "git+https://github.com/api7/lua-resty-simdjson.git",
-    tag = "v0.1.1",
+    tag = "v0.1.2",
 }
 
 description = {
