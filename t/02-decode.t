@@ -322,6 +322,10 @@ ok
             local v, err = parser:decode([[ { "bad unicode \udfff escape" } ]])
             assert(v == nil and err)
 
+            local v, err = parser:decode("")
+            assert(v == nil and err)
+            assert(err:find("EMPTY", 1, true))
+
             ngx.say("ok")
         }
     }
