@@ -22,6 +22,10 @@ static bool need_allocation(const char *buf, size_t len) {
 
     SIMDJSON_DEVELOPMENT_ASSERT(PAGESIZE > 0);
 
+    if (len == 0) {
+        return true;
+    }
+
     return ((reinterpret_cast<uintptr_t>(buf + len - 1) % PAGESIZE) <
             SIMDJSON_PADDING);
 }
