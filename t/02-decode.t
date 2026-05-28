@@ -335,45 +335,7 @@ ok
 [crit]
 
 
-=== TEST 8: parser recovers after nested string decode error
---- http_config eval: $::HttpConfig
---- config
-    location = /t {
-        content_by_lua_block {
-            local simdjson = require("resty.simdjson")
-
-            local parser = simdjson.new()
-            assert(parser)
-
-            local v, err = parser:decode([[{"model":["\uD800"]}]])
-            assert(v == nil and err)
-            assert(err:find("STRING_ERROR", 1, true))
-
-            v, err = parser:decode([[{"model":"gpt-4","messages":[{"role":"user","content":"hello"}]}]])
-            assert(v, err)
-            assert(v.model == "gpt-4")
-            assert(v.messages[1].content == "hello")
-
-            v, err = parser:decode([[{"model":"gpt-4","messages":[{"role":"user","content":"world"}]}]])
-            assert(v, err)
-            assert(v.model == "gpt-4")
-            assert(v.messages[1].content == "world")
-
-            ngx.say("ok")
-        }
-    }
---- request
-GET /t
---- response_body
-ok
---- no_error_log
-[error]
-[warn]
-[crit]
-
-
-
-=== TEST 9: nested array data
+=== TEST 8: nested array data
 --- http_config eval: $::HttpConfig
 --- config
     location = /t {
@@ -405,7 +367,7 @@ ok
 
 
 
-=== TEST 10: run reentrant decode when not yieldable
+=== TEST 9: run reentrant decode when not yieldable
 --- http_config eval: $::HttpConfig
 --- config
     location = /t {
@@ -439,7 +401,7 @@ ok
 
 
 
-=== TEST 11: can not run reentrant decode when yieldable
+=== TEST 10: can not run reentrant decode when yieldable
 --- http_config eval: $::HttpConfig
 --- config
     location = /t {
@@ -504,6 +466,44 @@ GET /t
 --- response_body
 simdjson: error: STRING_ERROR: Problem while parsing a string
 simdjson: error: STRING_ERROR: Problem while parsing a string
+--- no_error_log
+[error]
+[warn]
+[crit]
+
+
+
+=== TEST 12: parser recovers after nested string decode error
+--- http_config eval: $::HttpConfig
+--- config
+    location = /t {
+        content_by_lua_block {
+            local simdjson = require("resty.simdjson")
+
+            local parser = simdjson.new()
+            assert(parser)
+
+            local v, err = parser:decode([[{"model":["\uD800"]}]])
+            assert(v == nil and err)
+            assert(err:find("STRING_ERROR", 1, true))
+
+            v, err = parser:decode([[{"model":"gpt-4","messages":[{"role":"user","content":"hello"}]}]])
+            assert(v, err)
+            assert(v.model == "gpt-4")
+            assert(v.messages[1].content == "hello")
+
+            v, err = parser:decode([[{"model":"gpt-4","messages":[{"role":"user","content":"world"}]}]])
+            assert(v, err)
+            assert(v.model == "gpt-4")
+            assert(v.messages[1].content == "world")
+
+            ngx.say("ok")
+        }
+    }
+--- request
+GET /t
+--- response_body
+ok
 --- no_error_log
 [error]
 [warn]
